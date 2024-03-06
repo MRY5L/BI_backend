@@ -33,19 +33,22 @@ public class BiReMessageConsumer {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
         }
         Chart chart = chartService.getById(chartId);
-        if (chart.getNumber() > 2) {
-            channel.basicNack(deliveryTag, false, false);
-            chart.setStatus("noSuccess");
-            this.chartService.updateById(chart);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图表重试次数达到上限,请删除后重试");
-        }
         if (chart == null) {
             channel.basicNack(deliveryTag, false, false);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图表为空");
         }
+
+        if (chart.getNumber() > 2) {
+            channel.basicNack(deliveryTag, false, false);
+            chart.setStatus("noSuccess");
+            chartService.updateById(chart);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图表重试次数达到上限,请删除后重试");
+        }
+
         chart.setNumber(chart.getNumber() + 1);
-        this.chartService.updateById(chart);
-        String results = this.chatGptService.doChat(buildUserInput(chart) + "\n 请生成JSON代码,如option = {\n title: {\n    text: '网站用户增长趋势'\n }}");
+        chart.setStatus("running");
+        chartService.updateById(chart);
+        String results = chatGptService.doChat(buildUserInput(chart) + "\n 请生成JSON代码,如option = {\n title: {\n    text: '网站用户增长趋势'\n }}");
         String[] splits = results.split("【【【【【");
         if (splits.length < 3) {
             channel.basicNack(deliveryTag, false, false);

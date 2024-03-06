@@ -59,7 +59,7 @@ public class User implements Serializable {
     /**
      * 签到时间
      */
-    private LocalDate singInDate;
+    private Date singInDate;
 
     /**
      * 积分

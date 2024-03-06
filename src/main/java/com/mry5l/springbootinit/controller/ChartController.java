@@ -35,8 +35,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -283,7 +289,6 @@ public class ChartController {
 //                "{前端 Echarts V5 的 option 配置对象js代码，合理地将数据进行可视化，不要生成任何多余的内容，比如注释}\n" +
 //                "【【【【【\n" +
 //                "{明确的数据分析结论、越详细越好，不要生成多余的注释}";
-        long biModelId = CommonConstant.BI_MODEL_ID;
         // 分析需求：
         // 分析网站用户的增长情况
         // 原始数据：
@@ -586,7 +591,7 @@ public class ChartController {
         if (chartId == null || chartId.equals(-1L)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "chart图表id错误");
         }
-        boolean b = this.chartService.removeById(chartId);
+        boolean b = chartService.removeById(chartId);
         if (!b) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除图表失败");
         }
@@ -603,8 +608,6 @@ public class ChartController {
         this.userService.updateById(user);
     }
 
-    private static final LocalDate NOW = LocalDate.now();
-
     @PostMapping({"/singin"})
     public BaseResponse loginSingIn(@RequestBody Long userId) {
         if (userId == null || userId.equals(-1L)) {
@@ -614,12 +617,24 @@ public class ChartController {
         if ((user.getScore()) + 10 >= 126) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "积分已达上限,请先使用");
         }
-        LocalDate singInDate = user.getSingInDate();
-        if (NOW.equals(singInDate)) {
+        Date oldDate = user.getSingInDate();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat compare = new SimpleDateFormat("yyyy-MM-dd");
+        Date nowDate = new Date();
+        String currentTime = compare.format(nowDate);
+        String oldDateTime = compare.format(oldDate);
+        if (currentTime.equals(oldDateTime)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "今日已签到");
         }
         user.setScore((user.getScore() + 10));
-        user.setSingInDate(NOW);
+        Date parse = null;
+        try {
+            String format = dateFormat.format(nowDate);
+            parse = dateFormat.parse(format);
+        } catch (ParseException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "签到时间转换异常");
+        }
+        user.setSingInDate(parse);
         this.userService.updateById(user);
         return ResultUtils.success(null);
     }
@@ -629,6 +644,15 @@ public class ChartController {
         String ipAddress = NetUtils.getIpAddress(httpServletRequest);
         Userinfo userinfo = new Userinfo();
         userinfo.setIp(ipAddress);
-        this.userinfoService.save(userinfo);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String format = dateFormat.format(new Date());
+        Date parse = null;
+        try {
+            parse = dateFormat.parse(format);
+        } catch (ParseException e) {
+            log.error("记录用户ip地址时间,转换字符串时间异常");
+        }
+        userinfo.setLoginTime(parse);
+        userinfoService.save(userinfo);
     }
 }
