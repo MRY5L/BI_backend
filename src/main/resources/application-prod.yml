@@ -1,6 +1,6 @@
 # 线上配置文件
 server:
-  port:
+  port: 8101
   servlet:
     context-path: /api
     # cookie 30 天过期
@@ -12,22 +12,23 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/bi_db
-    username:
-    password:
+    url: jdbc:mysql://localhost:3306/bi_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 1828011yjl
+  # Redis 配置
   servlet:
     multipart:
       max-file-size: 10MB
   rabbitmq:
-    host:
-    port:
-    password:
-    username:
+    host: localhost
+    port: 5672
+    password: guest
+    username: guest
   redis:
-    database:
-    host:
-    port:
-    timeout:
+    database: 1
+    host: localhost
+    port: 6379
+    timeout: 5000
 mybatis-plus:
   configuration:
     # 生产环境关闭日志
@@ -41,5 +42,6 @@ mybatis-plus:
 knife4j:
   basic:
     enable: true
-    username:
-    password:
+    username: root
+    password: 123456
+

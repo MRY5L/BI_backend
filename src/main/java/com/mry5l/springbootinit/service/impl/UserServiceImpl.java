@@ -16,10 +16,16 @@ import com.mry5l.springbootinit.model.vo.UserVO;
 import com.mry5l.springbootinit.service.UserService;
 import com.mry5l.springbootinit.utils.SqlUtils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.Source;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -69,7 +75,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setUserAccount(userAccount);
             user.setUserPassword(encryptPassword);
             user.setUserName("牛至国-国民");
-            user.setUserAvatar("http://149.248.16.228:8101/api/pdx.jpg");
+            user.setUserAvatar("http://45.76.169.234:8101/api/pdx.jpg");
+            Calendar calendar = Calendar.getInstance(); // 获取当前日期
+            calendar.add(Calendar.DATE, -1); // 将日期减去一天
+            Date yesterday = calendar.getTime(); // 获取修改后的时间
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String format = dateFormat.format(yesterday);
+            Date parse = null;
+            try {
+                parse = dateFormat.parse(format);
+            } catch (ParseException e) {
+                log.info("用户注册,添加签到时间出错");
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "注册错误请稍后再试");
+            }
+            user.setSingInDate(parse);
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");

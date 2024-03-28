@@ -9,6 +9,7 @@ import com.mry5l.springbootinit.openai.ChatGptService;
 import com.mry5l.springbootinit.service.ChartService;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,12 +45,22 @@ public class BiReMessageConsumer {
             chartService.updateById(chart);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图表重试次数达到上限,请删除后重试");
         }
-
+        String userInput = buildUserInput(chart);
+        if (chatGptService.maxLength(userInput)) {
+            channel.basicNack(deliveryTag, false, false);
+            chart.setStatus("lengthMax");
+            chartService.updateById(chart);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "内容过多请删减后尝试");
+        }
+        String results = chatGptService.doChatMq(
+                userInput +
+                        "\n 请生成JSON代码,如option = {\n title: {\n    text: '网站用户增长趋势'\n }}",
+                channel, deliveryTag, chart);
         chart.setNumber(chart.getNumber() + 1);
         chart.setStatus("running");
         chartService.updateById(chart);
-        String results = chatGptService.doChat(buildUserInput(chart) + "\n 请生成JSON代码,如option = {\n title: {\n    text: '网站用户增长趋势'\n }}");
         String[] splits = results.split("【【【【【");
+        log.info("ChartGPT返回结果为: {}", Arrays.toString(splits));
         if (splits.length < 3) {
             channel.basicNack(deliveryTag, false, false);
             handleChartUpdateError(chart.getId(), "AI 生成错误");
@@ -94,7 +105,7 @@ public class BiReMessageConsumer {
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chartId);
         updateChartResult.setStatus("failed");
-        updateChartResult.setExecMessage("execMessage");
+        updateChartResult.setExecMessage(execMessage);
         boolean updateResult = chartService.updateById(updateChartResult);
         if (!updateResult) {
             log.error("更新图表失败状态失败" + chartId + "," + execMessage);

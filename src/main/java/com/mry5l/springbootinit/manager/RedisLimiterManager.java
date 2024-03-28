@@ -38,7 +38,7 @@ public class RedisLimiterManager {
     }
 
     public Page<Chart> chartCache(long current, long size, long id) {
-        RMap<String, Page<Chart>> chartCache = this.redissonClient.getMap("chartCache");
+        RMap<String, Page<Chart>> chartCache = redissonClient.getMap("chartCache");
         String cacheKey = "第" + current + "页" + size + "条数据,用户ID = " + id;
         Page<Chart> cache = chartCache.get(cacheKey);
         if (cache == null)
@@ -48,10 +48,14 @@ public class RedisLimiterManager {
     }
 
     public void insertCache(Page<Chart> chartPage, long id) {
-        RMap<String, Page<Chart>> chartCache = this.redissonClient.getMap("chartCache");
+        RMap<String, Page<Chart>> chartCache = redissonClient.getMap("chartCache");
         String cacheKey = "第" + chartPage.getCurrent() + "页" + chartPage.getSize() + "条数据,用户ID = " + id;
         chartCache.put(cacheKey, chartPage);
         chartCache.expire(Duration.ofSeconds(30L));
         log.info("将当前用户图表信息存入缓存,key为: {}", cacheKey);
+    }
+
+    public void clear() {
+        redissonClient.getMap("chartCache").clear();
     }
 }

@@ -9,10 +9,10 @@
         <version>2.7.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.yupi</groupId>
-    <artifactId>yubi-backend</artifactId>
+    <groupId>com.mry5l</groupId>
+    <artifactId>bi-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>yubi-backend</name>
+    <name>bi-backend</name>
     <properties>
         <java.version>1.8</java.version>
     </properties>

@@ -83,10 +83,6 @@ public class ChartController {
 
     /**
      * 创建
-     *
-     * @param chartAddRequest
-     * @param request
-     * @return
      */
     @PostMapping("/add")
     public BaseResponse<Long> addChart(@RequestBody ChartAddRequest chartAddRequest, HttpServletRequest request) {
@@ -595,6 +591,7 @@ public class ChartController {
         if (!b) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除图表失败");
         }
+        redisLimiterManager.clear();
         return ResultUtils.success(null);
     }
 
@@ -626,7 +623,7 @@ public class ChartController {
         if (currentTime.equals(oldDateTime)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ERROR, "今日已签到");
         }
-        user.setScore((user.getScore() + 10));
+        user.setScore((user.getScore() + 3));
         Date parse = null;
         try {
             String format = dateFormat.format(nowDate);
@@ -636,7 +633,7 @@ public class ChartController {
         }
         user.setSingInDate(parse);
         this.userService.updateById(user);
-        return ResultUtils.success(null);
+        return ResultUtils.success("成功!");
     }
 
 

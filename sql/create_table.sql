@@ -15,7 +15,7 @@ create table if not exists `user`
     `userRole`     varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'user' COMMENT '用户角色：user/admin',
     `createTime`   datetime                                NOT NULL DEFAULT current_timestamp() COMMENT '创建时间',
     `isDelete`     tinyint(4)                              NOT NULL DEFAULT 0 COMMENT '是否删除',
-    `singInDate`   date                                             DEFAULT NULL COMMENT '签到时间',
+    `singInDate`   datetime                                NOT NULL DEFAULT current_timestamp() COMMENT '签到时间',
     `score`        tinyint(4)                                       DEFAULT 5 COMMENT '积分',
     PRIMARY KEY (`id`),
     KEY `idx_userAccount` (`userAccount`)
